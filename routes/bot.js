@@ -4,7 +4,7 @@ const botController = require("../controllers/bot");
 
 router
   .post("/text", botController.textQuery)
-  .post("/event", botcontroller.eventQuery)
+  .post("/event", botController.eventQuery)
   .post("/fulfillment", botController.fulfillment);
 
 module.exports = router;
