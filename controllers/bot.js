@@ -1,5 +1,6 @@
 const config = require("../config/projectKey");
 const structjson = require("../config/util");
+const wiki = require("wikijs").default;
 
 exports.textQuery = async (req, res, next) => {
   const clientQuery = req.body.text;
@@ -25,20 +26,30 @@ exports.textQuery = async (req, res, next) => {
 
   try {
     const responses = await req.app.locals.sessionClient.detectIntent(request);
-
-    console.log("Detected intent");
     const result = responses[0].queryResult;
-    console.log(`  Query: ${result.queryText}`);
-    console.log(`  Response: ${result.fulfillmentText}`);
-    if (result.intent) {
-      console.log(`  Intent: ${result.intent.displayName}`);
-    } else {
-      console.log(`  No intent matched.`);
+    const searchResult = [];
+    if (responses[0].queryResult.parameters.fields.subject.stringValue) {
+      for (let i = 0; i < 3; i++) {
+        let temp = wiki().find(clientQuery, results => results[i]);
+        searchResult.push(temp);
+      }
+      let answers = await Promise.all(searchResult);
+      console.log(answers);
     }
+
+    // console.log("Detected intent");
+
+    // console.log(`  Query: ${result.queryText}`);
+    // console.log(`  Response: ${result.fulfillmentText}`);
+    // if (result.intent) {
+    //   console.log(`  Intent: ${result.intent.displayName}`);
+    // } else {
+    //   console.log(`  No intent matched.`);
+    // }
+    res.json(result);
   } catch (e) {
     next(e);
   }
-  res.send("text route");
 };
 
 exports.eventQuery = async (req, res, next) => {
