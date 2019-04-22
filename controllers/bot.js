@@ -34,29 +34,29 @@ exports.textQuery = async (req, res, next) => {
       result.allRequiredParamsPresent &&
       result.action === "REQUEST_LEARNING"
     ) {
-      //console.log(responses[0].queryResult.parameters.fields.subject);
       for (let i = 0; i < 3; i++) {
         let temp = wiki().find(clientQuery, results => results[i]);
         searchResult.push(temp);
       }
       let answers = await Promise.all(searchResult);
-      //console.log(await answers[0].summary());
+
       answers.forEach(page =>
-        wikiResult.push({title: page.raw.title, link: page.raw.fullurl})
+        wikiResult.push({ title: page.raw.title, link: page.raw.fullurl })
       );
-      console.log(wikiResult);
+      //console.log(wikiResult);
     }
   } catch (e) {
     next(e);
   }
-  console.log(result);
-  res.json({...result, wikiInfo: wikiResult});
+  //console.log(result);
+  res.json({ ...result, wikiInfo: wikiResult });
 };
 
 exports.eventQuery = async (req, res, next) => {
   const clientEvent = req.body.event;
   const parameter = req.body.parameter;
   const userID = req.body.userID;
+  let result;
   const request = {
     session: req.app.locals.sessionPath + userID, //create unique dialogflow session
     queryInput: {
@@ -72,7 +72,7 @@ exports.eventQuery = async (req, res, next) => {
   try {
     let responses = await req.app.locals.sessionClient.detectIntent(request);
     console.log("Detected intent");
-    const result = responses[0].queryResult;
+    result = responses[0].queryResult;
     console.log(`  Query: ${result.queryText}`);
     console.log(`  Response: ${result.fulfillmentText}`);
     if (result.intent) {
@@ -84,7 +84,7 @@ exports.eventQuery = async (req, res, next) => {
     next(err);
   }
 
-  res.send("event route");
+  res.send(result);
 };
 
 exports.fulfillment = (req, res, next) => {
