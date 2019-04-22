@@ -41,7 +41,7 @@ exports.textQuery = async (req, res, next) => {
       let answers = await Promise.all(searchResult);
 
       answers.forEach(page =>
-        wikiResult.push({ title: page.raw.title, link: page.raw.fullurl })
+        wikiResult.push({title: page.raw.title, link: page.raw.fullurl})
       );
       //console.log(wikiResult);
     }
@@ -49,14 +49,15 @@ exports.textQuery = async (req, res, next) => {
     next(e);
   }
   //console.log(result);
-  res.json({ ...result, wikiInfo: wikiResult });
+  res.json({...result, wikiInfo: wikiResult});
 };
 
 exports.eventQuery = async (req, res, next) => {
   const clientEvent = req.body.event;
   const parameter = req.body.parameter;
   const userID = req.body.userID;
-  let result;
+  let result = null;
+  let wikiResult = [];
   const request = {
     session: req.app.locals.sessionPath + userID, //create unique dialogflow session
     queryInput: {
@@ -71,20 +72,23 @@ exports.eventQuery = async (req, res, next) => {
   };
   try {
     let responses = await req.app.locals.sessionClient.detectIntent(request);
-    console.log("Detected intent");
+    let randomResults = await wiki().random(3);
+    let pageResults = [];
+    randomResults.forEach(topic =>
+      pageResults.push(wiki().find(topic, results => results[0]))
+    );
+    let finalResults = await Promise.all(pageResults);
+    //console.log(finalResults);
+    finalResults.forEach(result =>
+      wikiResult.push({title: result.raw.title, link: result.raw.fullurl})
+    );
+    console.log(wikiResult);
     result = responses[0].queryResult;
-    console.log(`  Query: ${result.queryText}`);
-    console.log(`  Response: ${result.fulfillmentText}`);
-    if (result.intent) {
-      console.log(`  Intent: ${result.intent.displayName}`);
-    } else {
-      console.log(`  No intent matched.`);
-    }
   } catch (err) {
     next(err);
   }
 
-  res.send(result);
+  res.send({...result, wikiInfo: wikiResult});
 };
 
 exports.fulfillment = (req, res, next) => {
